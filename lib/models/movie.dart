@@ -2,9 +2,9 @@ class Movie {
   final String title;
   final int year;
   final String poster;
-  final String plot;
+  String plot;
 
-  const Movie({
+  Movie({
     required this.title,
     required this.year,
     required this.poster,

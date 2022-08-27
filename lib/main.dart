@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:get_anime_things/util.dart';
 import 'package:text_to_speech/text_to_speech.dart'; 
 
 import 'package:get_anime_things/detail.dart';
@@ -42,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final movieNameController = TextEditingController();
   final _movieNameFocusNode = FocusNode();
   final TextToSpeech tts = TextToSpeech(); 
-  Movie _movie = const Movie(title: "", year: 0, poster: "plot", plot: "");
+  Movie _movie = Movie(title: "", year: 0, poster: "plot", plot: "");
   String _apiKey = "";
 
   _MyHomePageState() {
@@ -66,10 +67,12 @@ class _MyHomePageState extends State<MyHomePage> {
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
       return;
     }
+    var foundedMovie = Movie.fromJson(responseDecoded);
+    foundedMovie.plot = (await AppUtils.translateToBR(foundedMovie.plot)).text;
     setState(() {
-      _movie = Movie.fromJson(responseDecoded);
+      _movie = foundedMovie;
     });
-    tts.speak(_movie.plot);
+    tts.speak(foundedMovie.plot);
   }
 
   @override

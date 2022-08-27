@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:text_to_speech/text_to_speech.dart'; 
 
 import 'package:get_anime_things/detail.dart';
 import 'package:get_anime_things/form.dart';
@@ -40,11 +41,15 @@ class _MyHomePageState extends State<MyHomePage> {
   final titleContainsQueryParam = "t";
   final movieNameController = TextEditingController();
   final _movieNameFocusNode = FocusNode();
+  final TextToSpeech tts = TextToSpeech(); 
   Movie _movie = const Movie(title: "", year: 0, poster: "plot", plot: "");
   String _apiKey = "";
 
   _MyHomePageState() {
     _apiKey = dotenv.get("OMDB_API_KEY");
+    tts.setRate(0.9);
+    tts.setPitch(1.3);
+    tts.setLanguage("pt-BR");
   }
 
   void _searchMovie() async {
@@ -64,6 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _movie = Movie.fromJson(responseDecoded);
     });
+    tts.speak(_movie.plot);
   }
 
   @override

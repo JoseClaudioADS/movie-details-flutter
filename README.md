@@ -1,6 +1,6 @@
-# get_anime_things
+# zemdb
 
-A new Flutter project.
+App Flutter to Get Movie Details based on the OMDB api
 
 ## Getting Started
 

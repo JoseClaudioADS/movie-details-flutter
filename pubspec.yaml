@@ -33,6 +33,7 @@ dependencies:
   flutter_dotenv: 5.0.2
   text_to_speech: 0.2.3
   translator: 0.1.7
+  loading_overlay: 0.3.0
 
 
 

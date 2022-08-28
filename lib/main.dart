@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:get_anime_things/util.dart';
 import 'package:text_to_speech/text_to_speech.dart'; 
+import 'package:loading_overlay/loading_overlay.dart';
 
+import 'package:get_anime_things/util.dart';
 import 'package:get_anime_things/detail.dart';
 import 'package:get_anime_things/form.dart';
 import 'package:get_anime_things/models/movie.dart';
@@ -24,29 +25,30 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: const MyHomePage(title: 'ZéMDB'),
+      home: const HomePage(title: 'ZéMDB'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomePageState extends State<HomePage> {
   final titleContainsQueryParam = "t";
   final movieNameController = TextEditingController();
   final _movieNameFocusNode = FocusNode();
   final TextToSpeech tts = TextToSpeech(); 
-  Movie _movie = Movie(title: "", year: 0, poster: "plot", plot: "");
+  bool _searching = false;
+  Movie? _movie;
   String _apiKey = "";
 
-  _MyHomePageState() {
+  _HomePageState() {
     _apiKey = dotenv.get("OMDB_API_KEY");
     tts.setRate(0.9);
     tts.setPitch(1.3);
@@ -54,7 +56,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _searchMovie() async {
-
+    setState(() {
+      _searching = true;
+    });
     final url = Uri.https("www.omdbapi.com", "", {
       titleContainsQueryParam: movieNameController.text,
       "apikey": _apiKey
@@ -65,12 +69,16 @@ class _MyHomePageState extends State<MyHomePage> {
     if (mounted && responseDecoded['Response'] == "False") {
       var snackBar = const SnackBar(content: Text('Filme não encontrado.'), backgroundColor: Colors.red);
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      setState(() {
+        _searching = false;
+      });
       return;
     }
     var foundedMovie = Movie.fromJson(responseDecoded);
     foundedMovie.plot = (await AppUtils.translateToBR(foundedMovie.plot)).text;
     setState(() {
       _movie = foundedMovie;
+      _searching = false;
     });
     tts.speak(foundedMovie.plot);
   }
@@ -82,24 +90,27 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              SearchMovieForm(
-                movieNameController: movieNameController,
-                movieNameFocusNode: _movieNameFocusNode,
-                searchMovie: _searchMovie
-              ),
-              Visibility(
-                visible: _movie.year > 0,
-                child: MovieDetail(movie: _movie),
-              )
-            ],
-          ),
-        )
+      body: LoadingOverlay(
+        isLoading: _searching, 
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                SearchMovieForm(
+                  movieNameController: movieNameController,
+                  movieNameFocusNode: _movieNameFocusNode,
+                  searchMovie: _searchMovie
+                ),
+                Visibility(
+                  visible: _movie != null,
+                  child: MovieDetail(movie: _movie),
+                )
+              ],
+            ),
+          )
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _searchMovie,

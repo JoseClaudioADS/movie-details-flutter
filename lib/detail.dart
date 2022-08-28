@@ -3,25 +3,28 @@ import 'package:get_anime_things/models/movie.dart';
 
 class MovieDetail extends StatelessWidget {
 
-  final Movie movie;
+  final Movie? movie;
 
   const MovieDetail({Key? key, required this.movie}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+
+    if (movie == null) return const Text("...");
+
     return Column(
       children: <Widget>[
         Text(
-          movie.title,
+          movie!.title,
           style: Theme.of(context).textTheme.headline4,
         ),
         Text(
-          movie.year.toString(),
+          movie!.year.toString(),
           style: Theme.of(context).textTheme.headline5,
         ),
-        Image.network(movie.poster),
+        Image.network(movie!.poster),
         Text(
-          movie.plot,
+          movie!.plot,
           style: Theme.of(context).textTheme.headline6,
         ),
       ],
